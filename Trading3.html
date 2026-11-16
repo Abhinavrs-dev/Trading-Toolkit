@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trader Toolkit V2.0 Pro</title>
+    <style>
+        :root {
+            --bg-main: #060913; --bg-card: #101626; --bg-input: #1a2235;
+            --accent: #00d09c; --accent-alt: #3b82f6; --warning: #f59e0b; --danger: #ef4444; --purple: #8b5cf6;
+            --text-main: #f8fafc; --text-muted: #94a3b8; --border: #27334b; --border-focus: #3b4b6b;
+        }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { background: var(--bg-card); border-radius: 16px; padding: 20px; width: 100%; max-width: 650px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); border: 1px solid var(--border); overflow: hidden; }
+        h2 { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 20px; margin-top: 0;}
+        .gradient-text { background: linear-gradient(90deg, var(--accent), var(--accent-alt)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Tabs */
+        .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
+        .tab { flex: 1; text-align: center; padding: 10px 2px; cursor: pointer; color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid transparent; transition: all 0.2s ease; letter-spacing: 0.5px; }
+        .tab:hover { color: var(--text-main); }
+        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+        
+        .sub-tabs { display: flex; background: var(--bg-input); border-radius: 8px; padding: 4px; margin-bottom: 16px; overflow-x: auto;}
+        .sub-tab { flex: 1; text-align: center; padding: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); cursor: pointer; border-radius: 6px; white-space: nowrap; margin: 0 2px; transition: all 0.2s;}
+        .sub-tab.active { background: var(--border-focus); color: var(--text-main); }
+
+        .tab-content, .sub-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active, .sub-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Inputs */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-bottom: 12px; }
+        
+        .form-group { display: flex; flex-direction: column;}
+        label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;}
+        select, input, textarea { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-focus); background: var(--bg-input); color: var(--text-main); font-size: 14px; box-sizing: border-box; }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+        button.btn { background: var(--accent); color: #000; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; transition: opacity 0.2s;}
+        button.btn.alt { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-focus);}
+        button.btn:hover { opacity: 0.8; }
+
+        /* Results Display */
+        .hero-result { background: linear-gradient(145deg, rgba(0, 208, 156, 0.1) 0%, rgba(0,0,0,0) 100%); border: 1px solid rgba(0, 208, 156, 0.2); border-radius: 8px; padding: 16px; text-align: center; margin-bottom: 12px; position: relative;}
+        .hero-result .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+        .hero-result .value { font-size: 28px; font-weight: 700; color: var(--accent); margin-top: 4px; display: flex; justify-content: center; align-items: center; gap: 10px;}
+        .hero-result .badge { font-size: 12px; background: rgba(0,208,156,0.2); padding: 2px 8px; border-radius: 12px; }
+        .hero-result.alt { background: linear-gradient(145deg, rgba(59, 130, 246, 0.1) 0%, rgba(0,0,0,0) 100%); border-color: rgba(59, 130, 246, 0.2); }
+        .hero-result.alt .value { color: var(--accent-alt); }
+        .hero-result.danger { background: linear-gradient(145deg, rgba(239, 68, 68, 0.1) 0%, rgba(0,0,0,0) 100%); border-color: rgba(239, 68, 68, 0.2); }
+        .hero-result.danger .value { color: var(--danger); }
+        .hero-result.danger .badge { background: rgba(239,68,68,0.2); color: var(--danger);}
+
+        .details-panel { background: rgba(26, 34, 53, 0.5); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px;}
+        .detail-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: #b0c4de; }
+        .detail-row:last-child { margin-bottom: 0; }
+        .detail-row.highlight { color: var(--text-main); font-weight: 600; }
+        .detail-row.border-top { padding-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); }
+
+        /* Tables & Charts */
+        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 12px;}
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-muted); text-transform: uppercase; font-size: 10px; }
+        .pie-chart { width: 120px; height: 120px; border-radius: 50%; background: conic-gradient(#00d09c 0% 20%, #3b82f6 20% 40%, #f59e0b 40% 60%, #ef4444 60% 80%, #8b5cf6 80% 100%); margin: 0 auto; display: flex; justify-content: center; align-items: center;}
+        .pie-inner { width: 80px; height: 80px; background: var(--bg-card); border-radius: 50%; }
+        .legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; font-size: 11px; margin-top: 10px;}
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        /* Checklist & Stats */
+        .check-item { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 10px; padding: 10px; background: var(--bg-input); border-radius: 6px; border: 1px solid var(--border);}
+        .check-item input { transform: scale(1.2); accent-color: var(--accent); cursor: pointer;}
+        
+        .stat-box { text-align: center; background: var(--bg-input); padding: 10px; border-radius: 8px; border: 1px solid var(--border); }
+        .stat-box .title { font-size: 9px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;}
+        .stat-box .val { font-size: 16px; font-weight: bold; color: var(--text-main);}
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <h2><span class="gradient-text">Trader Toolkit V2.0 Pro </span></h2>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchMainTab('tab1', this)">1. P&L & Tax</div>
+        <div class="tab" onclick="switchMainTab('tab2', this)">2. Risk & Size</div>
+        <div class="tab" onclick="switchMainTab('tab3', this)">3. Calcs</div>
+        <div class="tab" onclick="switchMainTab('tab4', this)">4. Journal</div>
+    </div>
+
+    <!-- ================= TAB 1: P&L & TAX ================= -->
+    <div id="tab1" class="tab-content active">
+        <div class="sub-tabs">
+            <div class="sub-tab active" onclick="switchSubTab('tab1', 't1-calc', this)">Calculator</div>
+            <div class="sub-tab" onclick="switchSubTab('tab1', 't1-breakdown', this)">Tax Chart</div>
+            <div class="sub-tab" onclick="switchSubTab('tab1', 't1-compare', this)">Compare</div>
+            <div class="sub-tab" onclick="switchSubTab('tab1', 't1-custom', this)">Custom</div>
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Broker Profile</label>
+                <select id="t1-broker" onchange="calcTab1()">
+                    <option value="zerodha">Zerodha</option><option value="groww">Groww</option>
+                    <option value="upstox">Upstox</option><option value="angel">Angel One</option>
+                    <option value="dhan">Dhan</option><option value="fyers">Fyers</option>
+                    <option value="icici">ICICI Direct</option><option value="kotak">Kotak Neo</option>
+                    <option value="custom">My Custom Broker</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Trade Segment</label>
+                <select id="t1-type" onchange="calcTab1()"><option value="intraday">Intraday (Eq)</option><option value="delivery">Delivery (Eq)</option></select>
+            </div>
+        </div>
+        <div class="grid-3">
+            <div class="form-group"><label>Buy (₹)</label><input type="number" id="t1-buy" value="100" oninput="calcTab1()"></div>
+            <div class="form-group"><label>Sell (₹)</label><input type="number" id="t1-sell" value="110" oninput="calcTab1()"></div>
+            <div class="form-group"><label>Qty</label><input type="number" id="t1-qty" value="200" oninput="calcTab1()"></div>
+        </div>
+
+        <!-- T1 Sub 1: Main Calc -->
+        <div id="t1-calc" class="sub-content active">
+            <div class="hero-result" id="t1-hero">
+                <div class="label">Net Profit (After All Fees)</div>
+                <div class="value"><span id="t1-net">₹0.00</span> <span class="badge" id="t1-pct">+0.00%</span></div>
+            </div>
+            <div class="details-panel">
+                <div class="detail-row"><span>Gross Profit</span><span id="t1-gross">₹0.00</span></div>
+                <div class="detail-row"><span>Total Charges</span><span id="t1-fees" style="color: var(--danger)">₹0.00</span></div>
+                <div class="detail-row"><span>Charges as % of Profit</span><span id="t1-fee-pct" style="color: var(--warning)">0%</span></div>
+                <div class="detail-row border-top highlight"><span>Exact Break-even Price</span><span id="t1-be" style="color: var(--accent-alt)">₹0.00</span></div>
+            </div>
+        </div>
+
+        <!-- T1 Sub 2: Breakdown & Chart -->
+        <div id="t1-breakdown" class="sub-content">
+            <div class="grid-2" style="align-items: center;">
+                <div class="details-panel" style="margin-bottom:0;">
+                    <div class="detail-row"><span>Brokerage</span><span id="tx-brok">₹0</span></div>
+                    <div class="detail-row"><span>STT</span><span id="tx-stt">₹0</span></div>
+                    <div class="detail-row"><span>Exchange</span><span id="tx-exch">₹0</span></div>
+                    <div class="detail-row"><span>GST</span><span id="tx-gst">₹0</span></div>
+                    <div class="detail-row"><span>Stamp Duty</span><span id="tx-stamp">₹0</span></div>
+                    <div class="detail-row"><span>SEBI & DP</span><span id="tx-dp">₹0</span></div>
+                    <div class="detail-row border-top highlight"><span>Total</span><span id="tx-total">₹0</span></div>
+                </div>
+                <div>
+                    <div class="pie-chart" id="tax-pie"><div class="pie-inner"></div></div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="dot" style="background:#00d09c"></div>Brok</div>
+                        <div class="legend-item"><div class="dot" style="background:#3b82f6"></div>STT</div>
+                        <div class="legend-item"><div class="dot" style="background:#f59e0b"></div>GST</div>
+                        <div class="legend-item"><div class="dot" style="background:#ef4444"></div>Exch</div>
+                        <div class="legend-item"><div class="dot" style="background:#8b5cf6"></div>DP</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- T1 Sub 3: Compare -->
+        <div id="t1-compare" class="sub-content">
+            <table id="broker-compare-table">
+                <thead><tr><th>Broker</th><th>Net Profit</th><th>Difference</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- T1 Sub 4: Custom Broker -->
+        <div id="t1-custom" class="sub-content">
+            <div class="details-panel">
+                <p style="font-size: 12px; margin-top:0; color:var(--text-main)">Create "My Broker" Profile (Saved to Local Storage)</p>
+                <div class="grid-2">
+                    <div class="form-group"><label>Intraday Brok (₹)</label><input type="number" id="cb-intra" value="10"></div>
+                    <div class="form-group"><label>Delivery Brok (₹)</label><input type="number" id="cb-del" value="10"></div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group"><label>DP Charge (₹)</label><input type="number" id="cb-dp" value="12"></div>
+                    <div class="form-group"><label>GST (%)</label><input type="number" id="cb-gst" value="18"></div>
+                </div>
+                <button class="btn" onclick="saveCustomBroker()">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 2: RISK MGT ================= -->
+    <div id="tab2" class="tab-content">
+        <div class="sub-tabs">
+            <div class="sub-tab active" onclick="switchSubTab('tab2', 't2-pos', this)">Position Size</div>
+            <div class="sub-tab" onclick="switchSubTab('tab2', 't2-dash', this)">Risk Dash</div>
+            <div class="sub-tab" onclick="switchSubTab('tab2', 't2-check', this)">Checklist</div>
+        </div>
+
+        <!-- T2 Sub 1: Position & Margin -->
+        <div id="t2-pos" class="sub-content active">
+            <div class="grid-2">
+                <div class="form-group"><label>Capital (₹)</label><input type="number" id="t2-cap" value="100000" oninput="calcTab2()"></div>
+                <div class="form-group"><label>Risk (%)</label><input type="number" id="t2-risk" value="1" step="0.1" oninput="calcTab2()"></div>
+            </div>
+            <div class="grid-3">
+                <div class="form-group"><label>Entry (₹)</label><input type="number" id="t2-entry" value="250" oninput="calcTab2()"></div>
+                <div class="form-group"><label>Stop Loss (₹)</label><input type="number" id="t2-sl" value="245" oninput="calcTab2()"></div>
+                <div class="form-group"><label>Leverage (x)</label><input type="number" id="t2-lev" value="5" oninput="calcTab2()"></div>
+            </div>
+            <div class="hero-result alt">
+                <div class="label">Position Size (Max Quantity)</div>
+                <div class="value" id="t2-res-shares">0 Shares</div>
+            </div>
+            <div class="details-panel">
+                <div class="detail-row"><span>Risk Amount (Max Loss)</span><span id="t2-res-risk" style="color:var(--danger)">₹0</span></div>
+                <div class="detail-row"><span>Total Position Value</span><span id="t2-res-val">₹0</span></div>
+                <div class="detail-row"><span>Capital Used (Margin)</span><span id="t2-res-margin" style="color:var(--warning)">₹0</span></div>
+                <div class="detail-row border-top highlight"><span>Capital Left</span><span id="t2-res-left">₹0</span></div>
+            </div>
+        </div>
+
+        <!-- T2 Sub 2: Risk Dash -->
+        <div id="t2-dash" class="sub-content">
+            <div class="grid-3">
+                <div class="form-group"><label>Entry</label><input type="number" id="t2-d-entry" value="250" oninput="calcRiskDash()"></div>
+                <div class="form-group"><label>Stop Loss</label><input type="number" id="t2-d-sl" value="245" oninput="calcRiskDash()"></div>
+                <div class="form-group"><label>Target</label><input type="number" id="t2-d-tgt" value="265" oninput="calcRiskDash()"></div>
+            </div>
+            <div class="hero-result">
+                <div class="label">Risk : Reward Ratio</div>
+                <div class="value" id="t2-d-ratio">1 : 0.00</div>
+            </div>
+            <div class="details-panel">
+                <div class="detail-row"><span>Risk (₹)</span><span id="t2-d-r" style="color:var(--danger)">0</span></div>
+                <div class="detail-row"><span>Reward (₹)</span><span id="t2-d-w" style="color:var(--accent)">0</span></div>
+                <div class="detail-row border-top highlight"><span>Minimum Win Rate Required</span><span id="t2-d-win" style="color:var(--warning)">0%</span></div>
+            </div>
+        </div>
+
+        <!-- T2 Sub 3: Checklist -->
+        <div id="t2-check" class="sub-content">
+            <div class="check-item"><input type="checkbox" onchange="calcChecklist()"> Trend confirmed on higher timeframe</div>
+            <div class="check-item"><input type="checkbox" onchange="calcChecklist()"> Volume validates the move</div>
+            <div class="check-item"><input type="checkbox" onchange="calcChecklist()"> Stop Loss logic is solid (Support/Resist)</div>
+            <div class="check-item"><input type="checkbox" onchange="calcChecklist()"> Risk is less than 2% of total capital</div>
+            <div class="check-item"><input type="checkbox" onchange="calcChecklist()"> Risk : Reward is at least 1:2</div>
+            <div class="hero-result" id="check-hero" style="margin-top:16px;">
+                <div class="label">Trade Quality Score</div>
+                <div class="value" id="check-score">0 / 100</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 3: TOOLS ================= -->
+    <div id="tab3" class="tab-content">
+        <div class="sub-tabs">
+            <div class="sub-tab active" onclick="switchSubTab('tab3', 't3-avg', this)">Avg Buys</div>
+            <div class="sub-tab" onclick="switchSubTab('tab3', 't3-exit', this)">Avg Exit</div>
+            <div class="sub-tab" onclick="switchSubTab('tab3', 't3-tgt', this)">Mthly Goal</div>
+            <div class="sub-tab" onclick="switchSubTab('tab3', 't3-draw', this)">Growth/Rec</div>
+        </div>
+
+        <!-- T3 Sub 1: Multi Buy Avg -->
+        <div id="t3-avg" class="sub-content active">
+            <table id="avg-table">
+                <thead><tr><th>Qty</th><th>Buy Price (₹)</th></tr></thead>
+                <tbody>
+                    <tr><td><input type="number" class="avg-q" value="100" oninput="calcMultiAvg()"></td><td><input type="number" class="avg-p" value="200" oninput="calcMultiAvg()"></td></tr>
+                    <tr><td><input type="number" class="avg-q" value="50" oninput="calcMultiAvg()"></td><td><input type="number" class="avg-p" value="180" oninput="calcMultiAvg()"></td></tr>
+                    <tr><td><input type="number" class="avg-q" value="40" oninput="calcMultiAvg()"></td><td><input type="number" class="avg-p" value="170" oninput="calcMultiAvg()"></td></tr>
+                    <tr><td><input type="number" class="avg-q" value="30" oninput="calcMultiAvg()"></td><td><input type="number" class="avg-p" value="150" oninput="calcMultiAvg()"></td></tr>
+                </tbody>
+            </table>
+            <div class="details-panel">
+                <div class="detail-row"><span>Total Shares</span><span id="avg-t-q">220</span></div>
+                <div class="detail-row"><span>Total Invested</span><span id="avg-t-v">₹40,300</span></div>
+                <div class="detail-row border-top highlight"><span>Average Price</span><span id="avg-res" style="color:var(--accent)">₹183.18</span></div>
+            </div>
+        </div>
+
+        <!-- T3 Sub 2: Avg Exit -->
+        <div id="t3-exit" class="sub-content">
+            <div class="grid-2">
+                <div class="form-group"><label>Total Bought Qty</label><input type="number" id="ex-bq" value="100" oninput="calcAvgExit()"></div>
+                <div class="form-group"><label>Average Buy Price</label><input type="number" id="ex-bp" value="100" oninput="calcAvgExit()"></div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>Already Sold Qty</label><input type="number" id="ex-sq" value="40" oninput="calcAvgExit()"></div>
+                <div class="form-group"><label>Sold At Price</label><input type="number" id="ex-sp" value="105" oninput="calcAvgExit()"></div>
+            </div>
+            <div class="form-group"><label>Total Target Profit (₹)</label><input type="number" id="ex-tgt" value="5000" oninput="calcAvgExit()"></div>
+            <div class="hero-result alt">
+                <div class="label">Sell remaining <span id="ex-rem-q">60</span> shares at:</div>
+                <div class="value" id="ex-res">₹108.33</div>
+            </div>
+        </div>
+
+        <!-- T3 Sub 3: Monthly Target Calculator -->
+        <div id="t3-tgt" class="sub-content">
+            <div class="grid-3">
+                <div class="form-group"><label>Monthly Goal</label><input type="number" id="mg-goal" value="40000" oninput="calcMonthlyGoal()"></div>
+                <div class="form-group"><label>Avg Profit/Trade</label><input type="number" id="mg-avg" value="1000" oninput="calcMonthlyGoal()"></div>
+                <div class="form-group"><label>Win Rate (%)</label><input type="number" id="mg-win" value="60" oninput="calcMonthlyGoal()"></div>
+            </div>
+            <div class="hero-result">
+                <div class="label">To hit your goal, you need:</div>
+                <div class="value"><span id="mg-res">67</span> Trades</div>
+            </div>
+        </div>
+
+        <!-- T3 Sub 4: Drawdown & Compound -->
+        <div id="t3-draw" class="sub-content">
+            <div class="details-panel" style="margin-bottom:16px;">
+                <label style="color:var(--text-main); font-size:12px;">Drawdown Recovery</label>
+                <div class="grid-2" style="margin-top:8px;">
+                    <div class="form-group"><label>Portfolio Loss (%)</label><input type="number" id="dd-loss" value="30" oninput="calcDrawdown()"></div>
+                    <div class="form-group"><label>Profit needed to recover</label>
+                        <div id="dd-res" style="font-size:20px; font-weight:bold; color:var(--warning); margin-top:4px;">42.85%</div>
+                    </div>
+                </div>
+            </div>
+            <div class="details-panel">
+                <label style="color:var(--text-main); font-size:12px;">Compound Growth</label>
+                <div class="grid-3" style="margin-top:8px;">
+                    <div class="form-group"><label>Capital</label><input type="number" id="cp-cap" value="50000" oninput="calcCompound()"></div>
+                    <div class="form-group"><label>Monthly %</label><input type="number" id="cp-pct" value="8" oninput="calcCompound()"></div>
+                    <div class="form-group"><label>Months</label><input type="number" id="cp-time" value="24" oninput="calcCompound()"></div>
+                </div>
+                <div class="detail-row border-top highlight" style="margin-top:10px;"><span>Final Output Value:</span><span id="cp-res" style="color:var(--accent)">₹3,17,000</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 4: JOURNAL ================= -->
+    <div id="tab4" class="tab-content">
+        <div class="sub-tabs">
+            <div class="sub-tab active" onclick="switchSubTab('tab4', 't4-log', this)">Log Trade</div>
+            <div class="sub-tab" onclick="switchSubTab('tab4', 't4-stats', this)">Advanced Stats</div>
+            <div class="sub-tab" onclick="switchSubTab('tab4', 't4-daily', this)">Daily P&L</div>
+            <div class="sub-tab" onclick="switchSubTab('tab4', 't4-hist', this)">History & Export</div>
+        </div>
+
+        <!-- T4 Sub 1: Log Trade -->
+        <div id="t4-log" class="sub-content active">
+            <div class="grid-3">
+                <div class="form-group"><label>Stock</label><input type="text" id="j-stock" placeholder="RELIANCE"></div>
+                <div class="form-group"><label>Entry (₹)</label><input type="number" id="j-entry" placeholder="200"></div>
+                <div class="form-group"><label>Exit (₹)</label><input type="number" id="j-exit" placeholder="210"></div>
+            </div>
+            <div class="grid-3">
+                <div class="form-group"><label>Net P&L (₹)</label><input type="number" id="j-pnl" placeholder="500"></div>
+                <div class="form-group"><label>Strategy</label><select id="j-strat"><option>Breakout</option><option>Pullback</option><option>Reversal</option><option>Random</option></select></div>
+                <div class="form-group"><label>Emotion</label><select id="j-emo"><option>Neutral</option><option>FOMO</option><option>Greed</option><option>Fear</option><option>Revenge</option></select></div>
+            </div>
+            <div class="form-group"><label>Notes / Mistake</label><textarea id="j-notes" rows="2" placeholder="Exited too early..."></textarea></div>
+            <button class="btn" onclick="saveJournalTrade()">Save Trade to Journal</button>
+        </div>
+
+        <!-- T4 Sub 2: Advanced Stats -->
+        <div id="t4-stats" class="sub-content">
+            <div class="grid-3">
+                <div class="stat-box"><div class="title">Total Trades</div><div class="val" id="st-tot">0</div></div>
+                <div class="stat-box"><div class="title">Win %</div><div class="val" id="st-winp" style="color:var(--accent)">0%</div></div>
+                <div class="stat-box"><div class="title">Profit Factor</div><div class="val" id="st-pf">0.00</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="stat-box"><div class="title">Average Win</div><div class="val" id="st-avgw" style="color:var(--accent)">₹0</div></div>
+                <div class="stat-box"><div class="title">Average Loss</div><div class="val" id="st-avgl" style="color:var(--danger)">₹0</div></div>
+            </div>
+            <div class="grid-2">
+                <div class="stat-box"><div class="title">Largest Win</div><div class="val" id="st-maxw" style="color:var(--accent)">₹0</div></div>
+                <div class="stat-box"><div class="title">Largest Loss</div><div class="val" id="st-maxl" style="color:var(--danger)">₹0</div></div>
+            </div>
+            <div class="stat-box"><div class="title">System Expectancy (Per Trade)</div><div class="val" id="st-exp" style="color:var(--warning)">₹0.00</div></div>
+        </div>
+
+        <!-- T4 Sub 3: Daily P&L -->
+        <div id="t4-daily" class="sub-content">
+            <div class="details-panel">
+                <div class="detail-row"><span>Today</span><span id="d-today" style="font-weight:bold; font-size:16px;">₹0</span></div>
+                <div class="detail-row"><span>Yesterday</span><span id="d-yest">₹0</span></div>
+                <div class="detail-row"><span>This Week</span><span id="d-week">₹0</span></div>
+                <div class="detail-row border-top highlight"><span>This Month</span><span id="d-month" style="font-size:16px; color:var(--accent)">₹0</span></div>
+            </div>
+        </div>
+
+        <!-- T4 Sub 4: History & Export -->
+        <div id="t4-hist" class="sub-content">
+            <div class="grid-3">
+                <button class="btn alt" onclick="exportCSV('csv')" style="font-size:12px; margin:0">CSV</button>
+                <button class="btn alt" onclick="exportCSV('excel')" style="font-size:12px; margin:0">Excel</button>
+                <button class="btn alt" onclick="exportCSV('pdf')" style="font-size:12px; margin:0">PDF (TxT)</button>
+            </div>
+            <div style="max-height: 250px; overflow-y: auto; margin-top: 12px; border-radius: 8px; border: 1px solid var(--border)">
+                <table id="journal-table" style="margin:0">
+                    <thead style="background:var(--bg-input); position:sticky; top:0"><tr><th>Date</th><th>Stock</th><th>P&L</th><th>Emo</th></tr></thead>
+                    <tbody id="journal-body"></tbody>
+                </table>
+            </div>
+            <button class="btn alt" onclick="clearJournal()" style="border-color:var(--danger); color:var(--danger); margin-top:10px;">Clear Data</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- UTILS ---
+    const formatInr = (num) => {
+        if (isNaN(num)) return "₹0.00";
+        return (num < 0 ? "-₹" : "₹") + Math.abs(num).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    };
+
+    // --- NAVIGATION ---
+    function switchMainTab(tabId, element) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        element.classList.add('active');
+        if(tabId === 'tab1') calcTab1();
+        if(tabId === 'tab4') loadJournal();
+    }
+    
+    // Fixed Sub-Tab Function
+    function switchSubTab(parentTab, subId, element) {
+        document.querySelectorAll(`#${parentTab} .sub-content`).forEach(t => t.classList.remove('active'));
+        document.querySelectorAll(`#${parentTab} .sub-tab`).forEach(t => t.classList.remove('active'));
+        document.getElementById(subId).classList.add('active');
+        element.classList.add('active');
+    }
+
+    // --- BROKER CONFIG (2026 Ready) ---
+    const getBrokers = () => {
+        let custom = JSON.parse(localStorage.getItem('customBroker')) || { intra: 10, del: 10, dp: 12, gst: 18 };
+        return {
+            zerodha: { i: 20, d: 0, dp: 15.93 },
+            groww: { i: 20, d: 20, dp: 15.93 },
+            upstox: { i: 20, d: 20, dp: 21.83 }, 
+            angel: { i: 20, d: 20, dp: 23.60 },
+            dhan: { i: 20, d: 0, dp: 14.16 },
+            fyers: { i: 20, d: 0, dp: 15 },
+            icici: { i: 'pct', d: 'pct', dp: 20 },
+            kotak: { i: 0, d: 0, dp: 23.60 },
+            custom: { i: custom.intra, d: custom.del, dp: custom.dp, gst: custom.gst }
+        }
+    };
+
+    function calculateTaxes(b, s, q, type, brokerKey) {
+        let buyVal = b*q; let sellVal = s*q; let turnover = buyVal + sellVal;
+        let brk = getBrokers()[brokerKey];
+        
+        let bBuy = 0; let bSell = 0;
+        if(brokerKey === 'icici') {
+            bBuy = type==='delivery' ? buyVal*0.0055 : buyVal*0.0005;
+            bSell = type==='delivery' ? sellVal*0.0055 : sellVal*0.0005;
+        } else {
+            let maxI = brk.i; let maxD = brk.d;
+            bBuy = type==='delivery' ? (maxD===0?0:Math.min(maxD, buyVal*0.001)) : Math.min(maxI, buyVal*0.0003);
+            bSell = type==='delivery' ? (maxD===0?0:Math.min(maxD, sellVal*0.001)) : Math.min(maxI, sellVal*0.0003);
+        }
+        let totalBrok = bBuy + bSell;
+        
+        let sttRate = type === 'intraday' ? 0.00025 : 0.001;
+        let stt = type === 'intraday' ? (sellVal * sttRate) : (turnover * sttRate);
+        let exch = turnover * 0.0000322;
+        let stamp = buyVal * (type === 'intraday' ? 0.00003 : 0.00015);
+        let sebi = turnover * 0.000001;
+        let gstRate = brokerKey === 'custom' ? (brk.gst/100) : 0.18;
+        let gst = (totalBrok + exch + sebi) * gstRate;
+        let dp = (type === 'delivery' && sellVal > 0) ? brk.dp : 0;
+
+        let total = totalBrok + stt + exch + stamp + sebi + gst + dp;
+        return { total, brok: totalBrok, stt, exch, stamp, gst, dp, sebi };
+    }
+
+    // --- TAB 1: P&L ---
+    function calcTab1() {
+        let b = parseFloat(document.getElementById('t1-buy').value) || 0;
+        let s = parseFloat(document.getElementById('t1-sell').value) || 0;
+        let q = parseFloat(document.getElementById('t1-qty').value) || 0;
+        let type = document.getElementById('t1-type').value;
+        let broker = document.getElementById('t1-broker').value;
+
+        if (b===0 || q===0) {
+            document.getElementById('t1-net').innerText = "₹0.00";
+            return;
+        }
+
+        let gross = (s - b) * q;
+        let taxes = calculateTaxes(b, s, q, type, broker);
+        let net = gross - taxes.total;
+        let cap = b * q;
+        let pct = cap > 0 ? (net / cap) * 100 : 0;
+
+        // Break-even (accurate iterative)
+        let beGuess = b;
+        let estFees = calculateTaxes(b, beGuess, q, type, broker).total;
+        let bePrice = b + (estFees/q);
+        estFees = calculateTaxes(b, bePrice, q, type, broker).total;
+        bePrice = b + (estFees/q);
+
+        // Update UI
+        let hero = document.getElementById('t1-hero');
+        document.getElementById('t1-net').innerText = formatInr(net);
+        document.getElementById('t1-pct').innerText = (net>0?"+":"") + pct.toFixed(2) + "%";
+        document.getElementById('t1-gross').innerText = formatInr(gross);
+        document.getElementById('t1-fees').innerText = formatInr(taxes.total);
+        document.getElementById('t1-be').innerText = formatInr(bePrice);
+        
+        let feePct = gross>0 ? ((taxes.total/gross)*100).toFixed(1)+"%" : (gross<0 ? "Loss" : "N/A");
+        document.getElementById('t1-fee-pct').innerText = feePct;
+        
+        if (net < 0) { hero.classList.add('danger'); document.getElementById('t1-pct').style.color="var(--danger)";}
+        else { hero.classList.remove('danger'); document.getElementById('t1-pct').style.color="var(--accent)";}
+
+        // Breakdown Chart
+        document.getElementById('tx-brok').innerText = formatInr(taxes.brok);
+        document.getElementById('tx-stt').innerText = formatInr(taxes.stt);
+        document.getElementById('tx-exch').innerText = formatInr(taxes.exch);
+        document.getElementById('tx-gst').innerText = formatInr(taxes.gst);
+        document.getElementById('tx-stamp').innerText = formatInr(taxes.stamp);
+        document.getElementById('tx-dp').innerText = formatInr(taxes.dp + taxes.sebi);
+        document.getElementById('tx-total').innerText = formatInr(taxes.total);
+
+        // Pie Chart
+        let t = taxes.total;
+        if(t>0) {
+            let pB = (taxes.brok/t)*100; let pS = pB + (taxes.stt/t)*100; let pG = pS + (taxes.gst/t)*100; let pE = pG + (taxes.exch/t)*100;
+            document.getElementById('tax-pie').style.background = `conic-gradient(#00d09c 0% ${pB}%, #3b82f6 ${pB}% ${pS}%, #f59e0b ${pS}% ${pG}%, #ef4444 ${pG}% ${pE}%, #8b5cf6 ${pE}% 100%)`;
+        }
+
+        // Compare Brokers
+        let tbody = document.querySelector('#broker-compare-table tbody');
+        tbody.innerHTML = '';
+        let bks = ['zerodha','groww','upstox','angel','dhan','fyers','icici','kotak'];
+        let maxNet = -9999999;
+        let rowData = [];
+        bks.forEach(bk => {
+            let n = gross - calculateTaxes(b, s, q, type, bk).total;
+            if(n > maxNet) maxNet = n;
+            rowData.push({name: bk.charAt(0).toUpperCase()+bk.slice(1), net: n});
+        });
+        rowData.forEach(r => {
+            let diff = r.net - maxNet;
+            let diffStr = diff === 0 ? "Best" : formatInr(diff);
+            let color = diff === 0 ? "color:var(--accent)" : "color:var(--danger)";
+            tbody.innerHTML += `<tr><td>${r.name}</td><td style="${color}; font-weight:bold">${formatInr(r.net)}</td><td>${diffStr}</td></tr>`;
+        });
+    }
+
+    function saveCustomBroker() {
+        let cb = {
+            intra: parseFloat(document.getElementById('cb-intra').value)||0,
+            del: parseFloat(document.getElementById('cb-del').value)||0,
+            dp: parseFloat(document.getElementById('cb-dp').value)||0,
+            gst: parseFloat(document.getElementById('cb-gst').value)||18
+        };
+        localStorage.setItem('customBroker', JSON.stringify(cb));
+        alert('Custom Broker Saved!');
+        calcTab1();
+    }
+
+    // --- TAB 2: RISK ---
+    function calcTab2() {
+        let cap = parseFloat(document.getElementById('t2-cap').value) || 0;
+        let riskP = parseFloat(document.getElementById('t2-risk').value) || 0;
+        let entry = parseFloat(document.getElementById('t2-entry').value) || 0;
+        let sl = parseFloat(document.getElementById('t2-sl').value) || 0;
+        let lev = parseFloat(document.getElementById('t2-lev').value) || 1;
+
+        let riskAmt = cap * (riskP/100);
+        let riskPerShare = entry - sl;
+        let shares = 0; let margin = 0; let left = cap; let totalVal = 0;
+
+        if (riskPerShare > 0 && entry > 0) {
+            shares = Math.floor(riskAmt / riskPerShare);
+            totalVal = shares * entry;
+            margin = totalVal / lev;
+            
+            // Limit to actual capital
+            if (margin > cap) {
+                shares = Math.floor((cap * lev) / entry);
+                totalVal = shares * entry;
+                margin = totalVal / lev;
+            }
+            left = cap - margin;
+            
+            document.getElementById('t2-res-shares').innerText = shares + " Shares";
+            document.getElementById('t2-res-risk').innerText = formatInr(shares * riskPerShare);
+            document.getElementById('t2-res-val').innerText = formatInr(totalVal);
+            document.getElementById('t2-res-margin').innerText = formatInr(margin);
+            document.getElementById('t2-res-left').innerText = formatInr(left);
+        } else {
+            document.getElementById('t2-res-shares').innerText = "0 Shares";
+        }
+    }
+
+    function calcRiskDash() {
+        let e = parseFloat(document.getElementById('t2-d-entry').value) || 0;
+        let s = parseFloat(document.getElementById('t2-d-sl').value) || 0;
+        let t = parseFloat(document.getElementById('t2-d-tgt').value) || 0;
+        
+        let risk = e - s; let reward = t - e;
+        if(risk>0 && reward>0) {
+            let ratio = reward/risk;
+            document.getElementById('t2-d-r').innerText = formatInr(risk);
+            document.getElementById('t2-d-w').innerText = formatInr(reward);
+            document.getElementById('t2-d-ratio').innerText = "1 : "+ratio.toFixed(2);
+            document.getElementById('t2-d-win').innerText = ((1/(1+ratio))*100).toFixed(1)+"%";
+        } else {
+            document.getElementById('t2-d-ratio').innerText = "---";
+        }
+    }
+
+    function calcChecklist() {
+        let boxes = document.querySelectorAll('.check-item input');
+        let checked = 0; boxes.forEach(b => {if(b.checked) checked++;});
+        let score = Math.round((checked / boxes.length) * 100);
+        let el = document.getElementById('check-score');
+        el.innerText = score + " / 100";
+        if(score===100) el.style.color = "var(--accent)";
+        else if(score>=60) el.style.color = "var(--warning)";
+        else el.style.color = "var(--danger)";
+    }
+
+    // --- TAB 3: TOOLS ---
+    function calcMultiAvg() {
+        let qs = document.querySelectorAll('.avg-q');
+        let ps = document.querySelectorAll('.avg-p');
+        let tQ = 0; let tV = 0;
+        for(let i=0; i<qs.length; i++) {
+            let q = parseFloat(qs[i].value)||0; let p = parseFloat(ps[i].value)||0;
+            tQ += q; tV += (q*p);
+        }
+        document.getElementById('avg-t-q').innerText = tQ;
+        document.getElementById('avg-t-v').innerText = formatInr(tV);
+        document.getElementById('avg-res').innerText = tQ>0 ? formatInr(tV/tQ) : "₹0.00";
+    }
+
+    function calcAvgExit() {
+        let bq = parseFloat(document.getElementById('ex-bq').value)||0;
+        let bp = parseFloat(document.getElementById('ex-bp').value)||0;
+        let sq = parseFloat(document.getElementById('ex-sq').value)||0;
+        let sp = parseFloat(document.getElementById('ex-sp').value)||0;
+        let tgt = parseFloat(document.getElementById('ex-tgt').value)||0;
+        let remQ = bq - sq;
+        if(remQ <= 0) return;
+        
+        // Total revenue needed = target profit + total invested cost
+        // Total invested = bq * bp. Revenue so far = sq * sp.
+        let reqX = (tgt + (bq*bp) - (sq*sp)) / remQ;
+        document.getElementById('ex-rem-q').innerText = remQ;
+        document.getElementById('ex-res').innerText = formatInr(reqX);
+    }
+    
+    function calcMonthlyGoal() {
+        let goal = parseFloat(document.getElementById('mg-goal').value)||0;
+        let avgProf = parseFloat(document.getElementById('mg-avg').value)||0;
+        let win = parseFloat(document.getElementById('mg-win').value)||0;
+        if(avgProf > 0 && win > 0) {
+            let trades = (goal / avgProf); // Winning trades needed
+            let totalT = Math.ceil(trades / (win/100)); // Total trades required
+            document.getElementById('mg-res').innerText = totalT;
+        } else {
+            document.getElementById('mg-res').innerText = "0";
+        }
+    }
+
+    function calcDrawdown() {
+        let loss = parseFloat(document.getElementById('dd-loss').value)||0;
+        if(loss>=100) { document.getElementById('dd-res').innerText = "Infinity"; return;}
+        let rec = (loss / (100 - loss)) * 100;
+        document.getElementById('dd-res').innerText = rec.toFixed(2) + "%";
+    }
+
+    function calcCompound() {
+        let c = parseFloat(document.getElementById('cp-cap').value)||0;
+        let r = parseFloat(document.getElementById('cp-pct').value)||0;
+        let t = parseFloat(document.getElementById('cp-time').value)||0;
+        let fv = c * Math.pow((1 + (r/100)), t);
+        document.getElementById('cp-res').innerText = formatInr(fv);
+    }
+
+    // --- TAB 4: JOURNAL & STATS ---
+    let journal = JSON.parse(localStorage.getItem('traderJournal5')) || [];
+
+    function saveJournalTrade() {
+        let pnlVal = parseFloat(document.getElementById('j-pnl').value);
+        if(isNaN(pnlVal)) return alert("Please enter a Net P&L");
+
+        let trade = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString(),
+            stock: document.getElementById('j-stock').value || "UNK",
+            entry: document.getElementById('j-entry').value,
+            exit: document.getElementById('j-exit').value,
+            pnl: pnlVal,
+            strat: document.getElementById('j-strat').value,
+            emo: document.getElementById('j-emo').value,
+            notes: document.getElementById('j-notes').value
+        };
+        journal.unshift(trade);
+        localStorage.setItem('traderJournal5', JSON.stringify(journal));
+        
+        document.getElementById('j-stock').value = ""; document.getElementById('j-entry').value = "";
+        document.getElementById('j-exit').value = ""; document.getElementById('j-pnl').value = "";
+        document.getElementById('j-notes').value = "";
+        alert("Trade Saved!"); loadJournal();
+    }
+
+    function loadJournal() {
+        let tbody = document.getElementById('journal-body');
+        tbody.innerHTML = '';
+        
+        // Stats Vars
+        let total = journal.length; let wins = 0; let netPnl = 0;
+        let sumW = 0; let sumL = 0; let losses = 0;
+        let maxW = 0; let maxL = 0;
+        
+        // Daily P&L Vars
+        let now = new Date();
+        now.setHours(0,0,0,0);
+        let todayMs = now.getTime();
+        let dToday = 0; let dYest = 0; let dWeek = 0; let dMonth = 0;
+
+        journal.forEach(t => {
+            // Stats
+            if(t.pnl > 0) { wins++; sumW += t.pnl; if(t.pnl > maxW) maxW = t.pnl; }
+            else if(t.pnl < 0) { losses++; sumL += Math.abs(t.pnl); if(t.pnl < maxL) maxL = t.pnl; }
+            netPnl += t.pnl;
+
+            // Daily Track
+            let diffDays = (todayMs - new Date(t.date).getTime()) / (1000 * 3600 * 24);
+            if(diffDays === 0) dToday += t.pnl;
+            if(diffDays === 1) dYest += t.pnl;
+            if(diffDays <= 7) dWeek += t.pnl;
+            if(diffDays <= 30) dMonth += t.pnl;
+
+            // History Table
+            let color = t.pnl >= 0 ? "var(--accent)" : "var(--danger)";
+            tbody.innerHTML += `<tr><td>${t.date}</td><td>${t.stock}</td><td style="color:${color}; font-weight:bold">${formatInr(t.pnl)}</td><td>${t.emo}</td></tr>`;
+        });
+
+        // Update Stats UI
+        let winRate = total>0 ? (wins/total) : 0;
+        let avgW = wins>0 ? (sumW/wins) : 0;
+        let avgL = losses>0 ? (sumL/losses) : 0;
+        let pf = sumL > 0 ? (sumW/sumL) : (sumW>0 ? 99 : 0);
+        let exp = (winRate * avgW) - ((1-winRate) * avgL);
+
+        document.getElementById('st-tot').innerText = total;
+        document.getElementById('st-winp').innerText = (winRate*100).toFixed(1) + "%";
+        document.getElementById('st-pf').innerText = pf.toFixed(2);
+        document.getElementById('st-avgw').innerText = formatInr(avgW);
+        document.getElementById('st-avgl').innerText = formatInr(-avgL);
+        document.getElementById('st-maxw').innerText = formatInr(maxW);
+        document.getElementById('st-maxl').innerText = formatInr(maxL);
+        document.getElementById('st-exp').innerText = formatInr(exp);
+        document.getElementById('st-exp').style.color = exp >= 0 ? "var(--accent)" : "var(--danger)";
+
+        // Update Daily UI
+        const cF = (n, id) => { let el = document.getElementById(id); el.innerText = formatInr(n); el.style.color = n>=0 ? "var(--accent)" : "var(--danger)"; };
+        cF(dToday, 'd-today'); cF(dYest, 'd-yest'); cF(dWeek, 'd-week'); cF(dMonth, 'd-month');
+    }
+
+    function exportCSV(type) {
+        if(journal.length === 0) return alert("No trades to export.");
+        let head = "Date,Stock,Entry,Exit,P&L,Strategy,Emotion,Notes\n";
+        let csv = head;
+        journal.forEach(t => {
+            let notes = t.notes.replace(/,/g, " ").replace(/\n/g, " "); 
+            csv += `${t.date},${t.stock},${t.entry},${t.exit},${t.pnl},${t.strat},${t.emo},${notes}\n`;
+        });
+        
+        let blob = new Blob([csv], { type: 'text/csv' });
+        let url = window.URL.createObjectURL(blob);
+        let a = document.createElement('a'); a.setAttribute('href', url);
+        a.setAttribute('download', `trader_journal.${type==='excel'?'xls':(type==='pdf'?'txt':'csv')}`);
+        a.click();
+    }
+    
+    function clearJournal() {
+        if(confirm("Are you sure you want to delete all saved trades?")) {
+            localStorage.removeItem('traderJournal5'); journal = []; loadJournal();
+        }
+    }
+
+    // Init All
+    calcTab1(); calcTab2(); calcRiskDash(); calcMultiAvg(); calcAvgExit(); calcMonthlyGoal(); calcDrawdown(); calcCompound(); loadJournal();
+</script>
+
+</body>
+</html>
