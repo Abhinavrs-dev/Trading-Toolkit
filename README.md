@@ -1,1 +1,1 @@
-file:///C:/Users/abhin/OneDrive/Documents/project%20HTML/HTML/Trading%20poject/Trading3.html
+https://abhinavrs-dev.github.io/Trading-Toolkit/Trading3.html
